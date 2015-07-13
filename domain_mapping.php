@@ -522,7 +522,10 @@ function domain_mapping_siteurl( $setting ) {
                         if(isset($override_domain)){
                             $domain = $override_domain;
                         }else{
-                            $domain = $wpdb->get_var( "SELECT domain FROM {$wpdb->dmtable} WHERE blog_id = '{$wpdb->blogid}' AND domain = '" . $wpdb->escape( $_SERVER[ 'HTTP_HOST' ] ) . "' LIMIT 1" );
+                            $query = $wpdb->prepare("SELECT domain FROM {$wpdb->dmtable} WHERE blog_id = %d AND domain = %s LIMIT 1", $wpdb->blogid, $_SERVER[ 'HTTP_HOST' ]);
+                            $domain = $wpdb->get_var(
+                                $wpdb->prepare("SELECT domain FROM {$wpdb->dmtable} WHERE blog_id = %d AND domain = %s LIMIT 1", $wpdb->blogid, $_SERVER[ 'HTTP_HOST' ])
+                            );
                         }
                         // RMURPHY End Update
                         
@@ -538,7 +541,9 @@ function domain_mapping_siteurl( $setting ) {
                             $domain = $override_domain;
                         }else{
                             // get primary domain, if we don't have one then return original url.
-                            $domain = $wpdb->get_var( "SELECT domain FROM {$wpdb->dmtable} WHERE blog_id = '{$wpdb->blogid}' AND active = 1 LIMIT 1" );
+                            $domain = $wpdb->get_var(
+                                $wpdb->prepare("SELECT domain FROM %s WHERE blog_id = %d AND active = 1 LIMIT 1", $wpdb->dmtable, $wpdb->blogid)
+                            );
                         }
                         // RMURPHY End Update                        
 			if ( null == $domain ) {

@@ -8,10 +8,12 @@ if( !defined( 'AUTHORING_DOMAIN' ) )
 if ( defined( 'COOKIE_DOMAIN' ) ) {
 	die( 'The constant "COOKIE_DOMAIN" is defined (probably in wp-config.php). Please remove or comment out that define() line.' );
 }
-
+global $override_domain;
+                    
 // let the site admin page catch the VHOST == 'no'
 $wpdb->dmtable = $wpdb->base_prefix . 'domain_mapping';
-$dm_domain = $wpdb->escape( $_SERVER[ 'HTTP_HOST' ] );
+//$dm_domain = $wpdb->escape( $_SERVER[ 'HTTP_HOST' ] );
+$dm_domain = $_SERVER[ 'HTTP_HOST' ];
 
 if( ( $nowww = preg_replace( '|^www\.|', '', $dm_domain ) ) != $dm_domain )
 	$where = $wpdb->prepare( 'domain IN (%s,%s)', $dm_domain, $nowww );
@@ -28,7 +30,7 @@ function __isAuthoringDomain($domain){
 
 //Ensure that this isn't the authoring domain, in which case we don't need to
 //map domains
-if( !__isAuthoringDomain($host) ){
+if( !__isAuthoringDomain($dm_domain) ){
     $uri = $_SERVER['REQUEST_URI'];
     $host = $_SERVER['HTTP_HOST'];    
     $rows = $wpdb->get_results("SELECT * FROM {$wpdb->dmtable} WHERE domain LIKE '{$host}%' ORDER BY LENGTH(domain) DESC, active DESC");
@@ -55,7 +57,6 @@ if( !__isAuthoringDomain($host) ){
                 $req_domain = strtolower(trim($host, '/'));
                 
                 if($map_domain == $req_domain && preg_match("/^$sub_dir_esc/", $uri)){
-                    global $override_domain;
                     $override_domain = rtrim($map->domain, '/') . '/';
                     $domain_mapping_id = $map->blog_id;
                     break;
@@ -110,7 +111,9 @@ if( $domain_mapping_id ) {
 
 	$current_site = $wpdb->get_row( "SELECT * from {$wpdb->site} WHERE id = '{$current_blog->site_id}' LIMIT 0,1" );
 	$current_site->blog_id = $wpdb->get_var( "SELECT blog_id FROM {$wpdb->blogs} WHERE domain='{$current_site->domain}' AND path='{$current_site->path}'" );
-	if( function_exists( 'get_current_site_name' ) )
+	if ( function_exists( 'get_site_option' ) )
+		$current_site->site_name = get_site_option( 'site_name' );
+	elseif ( function_exists( 'get_current_site_name' ) )
 		$current_site = get_current_site_name( $current_site );
 
 	define( 'DOMAIN_MAPPING', 1 );
