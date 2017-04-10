@@ -632,7 +632,7 @@ function domain_mapping_post_content( $post_content ) {
 	//RMURPHY - Updating to also account for possible difference in protocol (http/https)
 	//between the authoring and delivery domains
 	$content = str_replace( $orig_url, $url, $post_content );
-	$content = str_replace( $orig_url2, $url, $post_content );
+	$content = str_replace( $orig_url2, $url, $content );
 	return $content;
 }
 
